@@ -1,0 +1,37 @@
+# CF ECS Logs Plugin - Cursor Rules
+
+## Testing
+
+After making changes to the plugin code, always test with:
+
+```bash
+make install && cf ecslogs mcp-gateway-jira-prod --recent
+```
+
+This ensures:
+1. The plugin compiles successfully
+2. The plugin installs correctly
+3. The plugin works with real Cloud Foundry logs from the `mcp-gateway-jira-prod` application
+
+## Development Workflow
+
+1. Make code changes
+2. Run `make build` to compile
+3. Test with `cf ecslogs mcp-gateway-jira-prod --recent` to verify output
+4. Verify colors and formatting are correct
+5. Check that all log levels (TRACE, DEBUG, INFO, WARN, ERROR) are properly colored
+
+## Color Scheme Reference
+
+- TRACE: Dim Grey (`\033[2;37m`)
+- DEBUG: Blue (`\033[34m`)
+- INFO: Green (`\033[32m`)
+- WARN: Orange (`\033[33m`)
+- ERROR: Red (`\033[31m`)
+
+## Code Quality
+
+- Run `make fmt` to format code
+- Run `make vet` to check for issues
+- Ensure no linter errors before committing
+- Keep functions focused and well-documented
