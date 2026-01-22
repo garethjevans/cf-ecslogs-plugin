@@ -13,12 +13,12 @@ import (
 
 // ANSI color codes
 const (
-	colorRed    = "\033[31m"    // ERROR
-	colorOrange = "\033[33m"    // WARN (yellow/orange in terminals)
-	colorGreen  = "\033[32m"    // INFO
-	colorBlue   = "\033[34m"    // DEBUG
-	colorGrey   = "\033[2;37m"  // TRACE (dim grey)
-	colorReset  = "\033[0m"     // Reset to default
+	colorRed    = "\033[31m"   // ERROR
+	colorOrange = "\033[33m"   // WARN (yellow/orange in terminals)
+	colorGreen  = "\033[32m"   // INFO
+	colorBlue   = "\033[34m"   // DEBUG
+	colorGrey   = "\033[2;37m" // TRACE (dim grey)
+	colorReset  = "\033[0m"    // Reset to default
 )
 
 // ECSLogsPlugin is the struct that implements the plugin interface
@@ -78,7 +78,7 @@ func (p *ECSLogsPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// Build the cf logs command
 	var output []string
 	var err error
-	
+
 	if recent {
 		output, err = cliConnection.CliCommandWithoutTerminalOutput("logs", appName, "--recent")
 		if err != nil {
@@ -109,7 +109,6 @@ func (p *ECSLogsPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 func (p *ECSLogsPlugin) ProcessLine(line string) {
 	p.processLogLine(line)
 }
-
 
 // processLogLine parses an ECS JSON log line and displays it in clear text
 func (p *ECSLogsPlugin) processLogLine(line string) {
@@ -146,19 +145,19 @@ func (p *ECSLogsPlugin) parseTraditionalLogFormat(line string) {
 	// Captures: timestamp, source, output type (OUT/ERR), and the rest
 	// Note: There may or may not be a space before OUT/ERR
 	cfLogRegex := regexp.MustCompile(`^\s*(\S+)\s+\[([^\]]+)\]\s*(OUT|ERR)\s+(.*)$`)
-	
+
 	matches := cfLogRegex.FindStringSubmatch(line)
 	if matches == nil || len(matches) < 5 {
 		// Doesn't match expected format, print as-is
 		fmt.Println(line)
 		return
 	}
-	
+
 	cfTimestamp := matches[1]
 	cfSource := matches[2]
 	outputType := matches[3]
 	content := matches[4]
-	
+
 	// Try to find JSON in the content
 	jsonStart := strings.Index(content, "{")
 	if jsonStart == -1 {
@@ -169,7 +168,7 @@ func (p *ECSLogsPlugin) parseTraditionalLogFormat(line string) {
 
 	// Extract JSON part
 	jsonPart := content[jsonStart:]
-	
+
 	var ecsLog ECSLog
 	if err := json.Unmarshal([]byte(jsonPart), &ecsLog); err != nil {
 		// Not valid ECS JSON, print the whole line formatted
@@ -247,11 +246,11 @@ func (p *ECSLogsPlugin) displayECSLogWithCFInfo(log *ECSLog, cfSource, cfTimesta
 	// Print with or without color
 	if color != "" {
 		// Apply color to the entire line
-		fmt.Printf("%s%s [%s] %s%s%s %s%s\n", 
+		fmt.Printf("%s%s [%s] %s%s%s %s%s\n",
 			color, formattedTime, source, level, loggerInfo, threadInfo, message, colorReset)
 	} else {
 		// Normal output without color
-		fmt.Printf("%s [%s] %s%s%s %s\n", 
+		fmt.Printf("%s [%s] %s%s%s %s\n",
 			formattedTime, source, level, loggerInfo, threadInfo, message)
 	}
 

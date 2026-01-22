@@ -1,6 +1,6 @@
 module github.com/garethjevans/cf-ecslogs-plugin
 
-go 1.22
+go 1.24
 
 require code.cloudfoundry.org/cli v7.1.0+incompatible
 

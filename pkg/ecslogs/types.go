@@ -23,16 +23,16 @@ type Log struct {
 
 // Labels contains additional label information
 type Labels struct {
-	AppGUID      string `json:"app_guid,omitempty"`
-	AppName      string `json:"app_name,omitempty"`
-	OrgGUID      string `json:"org_guid,omitempty"`
-	OrgName      string `json:"org_name,omitempty"`
-	SpaceGUID    string `json:"space_guid,omitempty"`
-	SpaceName    string `json:"space_name,omitempty"`
-	InstanceID   string `json:"instance_id,omitempty"`
-	ProcessID    string `json:"process_id,omitempty"`
-	ProcessType  string `json:"process_type,omitempty"`
-	SourceType   string `json:"source_type,omitempty"`
+	AppGUID     string `json:"app_guid,omitempty"`
+	AppName     string `json:"app_name,omitempty"`
+	OrgGUID     string `json:"org_guid,omitempty"`
+	OrgName     string `json:"org_name,omitempty"`
+	SpaceGUID   string `json:"space_guid,omitempty"`
+	SpaceName   string `json:"space_name,omitempty"`
+	InstanceID  string `json:"instance_id,omitempty"`
+	ProcessID   string `json:"process_id,omitempty"`
+	ProcessType string `json:"process_type,omitempty"`
+	SourceType  string `json:"source_type,omitempty"`
 }
 
 // Process contains process information
