@@ -9,20 +9,22 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <log-file>\n", os.Args[0])
-		os.Exit(1)
-	}
-
-	file, err := os.Open(os.Args[1])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
 	plugin := &ecslogs.ECSLogsPlugin{}
-	scanner := bufio.NewScanner(file)
+	var scanner *bufio.Scanner
+
+	// If a file argument is provided, read from file; otherwise read from stdin
+	if len(os.Args) >= 2 {
+		file, err := os.Open(os.Args[1])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		scanner = bufio.NewScanner(file)
+	} else {
+		// Read from stdin for streaming tests
+		scanner = bufio.NewScanner(os.Stdin)
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -30,7 +32,7 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
 		os.Exit(1)
 	}
 }

@@ -1,9 +1,11 @@
 package ecslogs
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -91,16 +93,64 @@ func (p *ECSLogsPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 		}
 	} else {
 		fmt.Fprintf(os.Stderr, "Retrieving logs for app %s...\n\n", appName)
-		// For streaming logs, get the output and process line by line
+		// For streaming logs, we need to spawn cf logs command and process output line by line
 		// Note: This will stream until interrupted (Ctrl+C)
-		output, err = cliConnection.CliCommandWithoutTerminalOutput("logs", appName)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error retrieving logs: %v\n", err)
-			os.Exit(1)
-		}
-		// Process and display logs
-		for _, line := range output {
+		p.streamLogs(appName)
+	}
+}
+
+// streamLogs spawns the cf logs command and processes output line by line in real-time
+func (p *ECSLogsPlugin) streamLogs(appName string) {
+	// Spawn cf logs command
+	cmd := exec.Command("cf", "logs", appName)
+
+	// Get stdout pipe
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating stdout pipe: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Get stderr pipe
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating stderr pipe: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error starting cf logs command: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Process stdout in real-time
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			line := scanner.Text()
 			p.processLogLine(line)
+		}
+	}()
+
+	// Process stderr in real-time (typically status messages)
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			line := scanner.Text()
+			// Print stderr messages as-is (they're usually CF status messages)
+			fmt.Fprintln(os.Stderr, line)
+		}
+	}()
+
+	// Wait for command to finish (will run until Ctrl+C)
+	if err := cmd.Wait(); err != nil {
+		// Don't treat Ctrl+C as an error
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if exitErr.ExitCode() != 0 && exitErr.ExitCode() != 130 { // 130 is Ctrl+C
+				fmt.Fprintf(os.Stderr, "Error running cf logs: %v\n", err)
+				os.Exit(1)
+			}
 		}
 	}
 }
